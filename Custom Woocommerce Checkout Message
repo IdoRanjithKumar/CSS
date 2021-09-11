@@ -1,0 +1,5 @@
+// Add Custom Woocommerce Checkout Message
+add_action( 'woocommerce_before_checkout_form', 'shop_message', 20 );
+function shop_message() {
+echo '<p class="woocommerce-message">Instructions on how to pack film for drop off and shipment. <a href="/faqs/" target="_blank">Learn More</a></p>';
+}
