@@ -1,0 +1,91 @@
+// Customizing Woocommerce radio form field
+add_action( 'woocommerce_form_field_radio', 'custom_form_field_radio', 20, 4 );
+function custom_form_field_radio( $field, $key, $args, $value ) {
+    if ( ! empty( $args['options'] ) && is_checkout() ) {
+        $field = str_replace( '</label><input ', '</label><br><input ', $field );
+        $field = str_replace( '<label ', '<label style="display:inline;margin-left:8px;" ', $field );
+    }
+    return $field;
+}
+
+// Add a custom dynamic packaging fee
+add_action( 'woocommerce_cart_calculate_fees', 'add_packaging_fee', 20, 1 );
+function add_packaging_fee( $cart ) {
+    if ( is_admin() && ! defined( 'DOING_AJAX' ) )
+        return;
+
+    $packing_fee = WC()->session->get( 'chosen_packing' ); // Dynamic packing fee
+    $fee = $packing_fee === '0' ? 0.00 : 5.00;
+    $cart->add_fee( __( 'Negative fee', 'woocommerce' ), $fee );
+}
+
+// Add a custom radio fields for packaging selection
+add_action( 'woocommerce_review_order_after_shipping', 'checkout_shipping_form_packing_addition', 20 );
+function checkout_shipping_form_packing_addition() {
+    $domain = 'woocommerce';
+
+    echo '<tr class="packing-select"><th>' . __('Negative Fee', $domain) . '</th><td>';
+
+    $chosen   = WC()->session->get('chosen_packing');
+    $chosen   = empty($chosen) ? WC()->checkout->get_value('radio_packing') : $chosen;
+    $chosen   = empty($chosen) ? '0' : $chosen;
+
+    // Add a custom checkbox field
+    woocommerce_form_field( 'radio_packing', array(
+        'type' => 'radio',
+        'class' => array( 'form-row-wide packing' ),
+        'options' => array(
+            '0' => __('Return The Negative: $5.00 '.wc_price(0.00), $domain),
+            '5' => __('Please, Throw It Away;) '.wc_price(5.00), $domain),
+        ),
+        'default' => $chosen,
+    ), $chosen );
+
+    echo '</td></tr>';
+}
+
+// jQuery - Ajax script
+add_action( 'wp_footer', 'checkout_shipping_packing_script' );
+function checkout_shipping_packing_script() {
+    if ( ! is_checkout() )
+        return; // Only checkout page
+    ?>
+    <script type="text/javascript">
+    jQuery( function($){
+        $('form.checkout').on('change', 'input[name=radio_packing]', function(e){
+            e.preventDefault();
+            var p = $(this).val();
+			            $.ajax({
+                type: 'POST',
+                url: wc_checkout_params.ajax_url,
+                data: {
+                    'action': 'woo_get_ajax_data',
+                    'packing': p,
+                },
+                success: function (result) {
+                    $('body').trigger('update_checkout');
+                    console.log('response: '+result); // just for testing | TO BE REMOVED
+                },
+                error: function(error){
+                    console.log(error); // just for testing | TO BE REMOVED
+                }
+            });
+
+        });
+    });
+    </script>
+    <?php
+
+}
+
+// Php Ajax (Receiving request and saving to WC session)
+add_action( 'wp_ajax_woo_get_ajax_data', 'woo_get_ajax_data' );
+add_action( 'wp_ajax_nopriv_woo_get_ajax_data', 'woo_get_ajax_data' );
+function woo_get_ajax_data() {
+    if ( isset($_POST['packing']) ){
+        $packing = sanitize_key( $_POST['packing'] );
+        WC()->session->set('chosen_packing', $packing );
+        echo json_encode( $packing );
+    }
+    die(); // Alway at the end (to avoid server error 500)
+}
