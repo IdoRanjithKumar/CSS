@@ -1,0 +1,14 @@
+/*
+Plugin name: Package Cost Extra fee
+*/
+
+function return_the_negative() {
+    global $woocommerce;
+    
+    $flat_rate = 5;
+    $taxable = $flat_rate;
+
+    $woocommerce->cart->add_fee( __( 'Return the Negative', 'om-service-widget' ), $taxable );
+}
+
+add_action( 'woocommerce_cart_calculate_fees', 'return_the_negative');
