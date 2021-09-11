@@ -1,0 +1,7 @@
+// Display Product Images in Woocommerce Checkout Page
+add_filter( 'woocommerce_cart_item_name', 'display_product_image_checkout', 10, 2 );
+function display_product_image_checkout( $name, $cart_item ) {
+    if ( ! is_checkout() ) return $name;
+    $thumbnail = '<span class="product-name__thumbnail" style="float: left; padding-right: 15px">' . get_the_post_thumbnail( $cart_item['product_id'], array( 32, 50 ) ) . '</span>';
+    return $thumbnail . '<span class="product-name__text">' . $name . '</span>';
+}
