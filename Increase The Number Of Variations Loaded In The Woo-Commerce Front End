@@ -1,0 +1,12 @@
+/**
+ * Function filters the threshold for the amount of variables to load in the front end.
+ *
+ * @see 	https://woocommerce.wordpress.com/2015/07/13/improving-the-variations-interface-in-2-4/  
+ * @param   	int 	$threshold 	Default of 30
+ * @return 	int 	100 		The new threshold.
+ */
+function lets_increase_the_variation_threshold( $threshold ) {
+
+	return 400;
+}
+add_filter( 'woocommerce_ajax_variation_threshold', 'lets_increase_the_variation_threshold' );
