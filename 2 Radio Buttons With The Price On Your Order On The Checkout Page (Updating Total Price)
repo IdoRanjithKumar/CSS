@@ -1,0 +1,36 @@
+add_action( 'woocommerce_review_order_before_order_total', 'checkout_delivery_radio_buttons' );
+function checkout_delivery_radio_buttons() {
+    echo '<tr class="delivery-radio">
+            <th>'.__("Would you like your negatives returned?").'</th><td>';
+
+    $chosen = WC()->session->get( 'delivery' );
+    $chosen = empty( $chosen ) ? WC()->checkout->get_value( 'delivery' ) : $chosen;
+    $chosen = empty( $chosen ) ? '0' : $chosen;
+
+    woocommerce_form_field( 'delivery',  array(
+        'type'      => 'radio',
+        'class'     => array( 'form-row-wide', 'update_totals_on_change' ),
+        'options'   => array(
+            '5.00'  => 'Yes',
+            '0'     => 'No',
+        ),
+    ), $chosen );
+    
+    echo '</td></tr>';
+}
+
+add_action( 'woocommerce_cart_calculate_fees', 'checkout_delivery_fee', 20, 1 );
+function checkout_delivery_fee( $cart ) {
+    if ( $radio = WC()->session->get( 'delivery' ) ) {
+        $cart->add_fee( 'Negative', $radio );
+    }
+}
+
+add_action( 'woocommerce_checkout_update_order_review', 'checkout_delivery_choice_to_session' );
+
+function checkout_delivery_choice_to_session( $posted_data ) {
+    parse_str( $posted_data, $output );
+    if ( isset( $output['delivery'] ) ){
+        WC()->session->set( 'delivery', $output['delivery'] );
+    }
+}
