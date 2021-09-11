@@ -1,0 +1,54 @@
+// Part 1 
+// Display Radio Buttons
+  
+add_action( 'woocommerce_review_order_before_payment', 'idoranjith_checkout_radio_choice' );
+  
+function idoranjith_checkout_radio_choice() {
+   $chosen = WC()->session->get( 'radio_chosen' );
+   $chosen = empty( $chosen ) ? WC()->checkout->get_value( 'radio_choice' ) : $chosen;
+   $chosen = empty( $chosen ) ? '5' : $chosen;
+        
+   $args = array(
+   'type' => 'radio',
+   'class' => array( 'form-row-wide', 'update_totals_on_change' ),
+   'options' => array(
+      '5' => 'Return The Negative: $5.00',
+      '0' => 'Please, Throw it Away ;)',
+   ),
+   'default' => $chosen
+   );
+     
+   echo '<div id="checkout-radio">';
+   echo '<h3>Negative</h3>';
+   woocommerce_form_field( 'radio_choice', $args, $chosen );
+   echo '</div>';
+}
+  
+// Part 2 
+// Add Fee and Calculate Total
+   
+add_action( 'woocommerce_cart_calculate_fees', 'idoranjith_checkout_radio_choice_fee', 20, 1 );
+  
+function idoranjith_checkout_radio_choice_fee( $cart ) {
+   
+   if ( is_admin() && ! defined( 'DOING_AJAX' ) ) return;
+    
+   $radio = WC()->session->get( 'radio_chosen' );
+     
+   if ( $radio ) {
+      $cart->add_fee( 'Negative', $radio );
+   }
+   
+}
+  
+// Part 3 
+// Add Radio Choice to Session
+  
+add_action( 'woocommerce_checkout_update_order_review', 'idoranjith_checkout_radio_choice_set_session' );
+  
+function idoranjith_checkout_radio_choice_set_session( $posted_data ) {
+    parse_str( $posted_data, $output );
+    if ( isset( $output['radio_choice'] ) ){
+        WC()->session->set( 'radio_chosen', $output['radio_choice'] );
+    }
+}
