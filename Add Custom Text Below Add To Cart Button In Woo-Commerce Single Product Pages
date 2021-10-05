@@ -1,0 +1,5 @@
+add_action( 'woocommerce_after_add_to_cart_button', 'ido_content_after_addtocart_button', 100 );
+function ido_content_after_addtocart_button() {
+    // custom content.
+    echo '<br/><div><p style="font-size:10px; font-style=italic; margin-top:20px;">*Add Text Here</p></div>';
+}
